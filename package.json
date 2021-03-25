@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "lint": "yarn eslint . --ext .js,.jsx,.ts,.tsx",
-    "dev": "tsc --watch && node dist/index.js"
+    "dev": "node dist/index.js",
+    "watch": "tsc-watch --onSuccess 'yarn dev'"
   },
   "dependencies": {
     "discord.js": "^12.5.1",
