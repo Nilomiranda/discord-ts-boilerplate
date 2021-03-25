@@ -10,7 +10,9 @@ client.on('ready', () => {
 })
 
 client.on('message', msg => {
-  console.log(msg?.content)
+  if (msg?.content?.startsWith('!snk') || msg?.content?.startsWith('!sp')) {
+    msg.reply('Hello, I identified your correct usage of my prefix')
+  }
 })
 
 client.login(process?.env?.BOT_TOKEN)
