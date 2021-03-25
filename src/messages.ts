@@ -1,5 +1,5 @@
 import * as Discord from 'discord.js'
-import {extractUrls} from "./common/identifyUrl";
+import {extractUrls, isUrl} from "./common/identifyUrl";
 import { JSDOM } from 'jsdom'
 
 const getLinks = (content: string): string[] => {
@@ -7,23 +7,40 @@ const getLinks = (content: string): string[] => {
 }
 
 const processLinks = (links: string[]): Promise<any> => {
-  return new Promise<any>((resolve, reject) => {
+  return new Promise<any>(async (resolve, reject) => {
     if (!links?.length) {
       reject('Please load at least one link')
     }
 
-    JSDOM.fromURL(links[0]).then(dom => {
-      const serializedDOM = dom?.serialize()
+    let productInformationFromLinks:any[] = []
+    const lastLinkIndex = links.length - 1;
 
-      if (serializedDOM) {
-        const nodeWindow = new JSDOM().window
-        const domParser = new nodeWindow.DOMParser()
-        const parsedHTMLContent = domParser.parseFromString(serializedDOM, 'text/html');
-        const scriptTag = parsedHTMLContent.querySelector('script[id="ProductJson--product-template"]')
-        const productInformation = JSON.parse(scriptTag.textContent)
-        resolve(productInformation)
+    for (let index = 0; index < links.length; index++) {
+      let link = links[index];
+
+      // skip iteration if link is not a valid url
+      if (!isUrl(link)) {
+        continue
       }
-    })
+
+      const dom = await JSDOM.fromURL(link);
+
+      if (dom) {
+        const serializedDOM = dom?.serialize()
+
+        if (serializedDOM) {
+          const nodeWindow = new JSDOM().window
+          const domParser = new nodeWindow.DOMParser()
+          const parsedHTMLContent = domParser.parseFromString(serializedDOM, 'text/html');
+          const scriptTag = parsedHTMLContent.querySelector('script[id="ProductJson--product-template"]')
+          const productInformation = JSON.parse(scriptTag.textContent)
+          productInformationFromLinks.push(productInformation)
+          if (index >= lastLinkIndex) {
+            resolve(productInformationFromLinks)
+          }
+        }
+      }
+    }
   })
 }
 
@@ -41,7 +58,8 @@ export const readMessage = (message: Discord.Message) => {
     }
 
     processLinks(links).then(res => {
-      message.reply(res?.variants)
+      console.log(res?.length)
+      message.reply(res)
     }).catch(err => {
       message.reply(err)
     })
