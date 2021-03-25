@@ -1,4 +1,7 @@
 import * as Discord from 'discord.js'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 const client = new Discord.Client()
 
@@ -7,7 +10,7 @@ client.on('ready', () => {
 })
 
 client.on('message', msg => {
-  msg.reply(msg?.content)
+  console.log(msg?.content)
 })
 
-client.login()
+client.login(process?.env?.BOT_TOKEN)
