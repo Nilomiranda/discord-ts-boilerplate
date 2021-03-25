@@ -51,7 +51,6 @@ const extractInformationFromLinks = (links: string[] = [], domQuerySelectorToExt
           const scriptTag = parsedHTMLContent.querySelector(domQuerySelectorToExtractProductData)
           const productInformation = JSON.parse(scriptTag.textContent)
           extractedInformation.push(productInformation)
-          console.log({ link, index, lastLinkIndex, willResolve: index >= lastLinkIndex })
           if (index >= lastLinkIndex) {
             resolve(extractedInformation)
           }
@@ -93,7 +92,6 @@ export const readMessage = (message: Discord.Message) => {
     }
 
     processLinks(links).then(res => {
-      console.log(res?.length)
       message.reply(res)
     }).catch(err => {
       message.reply(err)
