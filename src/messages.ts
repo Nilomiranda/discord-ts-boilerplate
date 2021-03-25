@@ -1,25 +1,41 @@
 import * as Discord from 'discord.js'
 import {extractUrls, isUrl} from "./common/identifyUrl";
 import { JSDOM } from 'jsdom'
+import {SHOE_PALACE, SHOP_NICE_KICKS} from "./common/constants";
+
+interface LinksSplitDataObject {
+  shoePalace: string[];
+  shopNiceKicks: string[];
+}
 
 const getLinks = (content: string): string[] => {
   return extractUrls(content)
 }
 
-const processLinks = (links: string[]): Promise<any> => {
-  return new Promise<any>(async (resolve, reject) => {
-    if (!links?.length) {
-      reject('Please load at least one link')
+const splitLinks = (links: string[]): LinksSplitDataObject => {
+  if (!links?.length) {
+    return {
+      shoePalace: [],
+      shopNiceKicks: [],
     }
+  }
 
-    let productInformationFromLinks:any[] = []
-    const lastLinkIndex = links.length - 1;
+  return {
+    shoePalace: links.filter(link => link?.includes(SHOE_PALACE)),
+    shopNiceKicks: links.filter(link => link?.includes(SHOP_NICE_KICKS)),
+  }
+}
 
+const extractInformationFromLinks = (links: string[] = [], domQuerySelectorToExtractProductData: string): Promise<any[]> => {
+  const extractedInformation: any[] = [];
+  const lastLinkIndex = links.length - 1;
+
+  return new Promise(async (resolve) => {
     for (let index = 0; index < links.length; index++) {
       let link = links[index];
 
       // skip iteration if link is not a valid url
-      if (!isUrl(link)) {
+      if (!isUrl(link) || !domQuerySelectorToExtractProductData) {
         continue
       }
 
@@ -32,15 +48,34 @@ const processLinks = (links: string[]): Promise<any> => {
           const nodeWindow = new JSDOM().window
           const domParser = new nodeWindow.DOMParser()
           const parsedHTMLContent = domParser.parseFromString(serializedDOM, 'text/html');
-          const scriptTag = parsedHTMLContent.querySelector('script[id="ProductJson--product-template"]')
+          const scriptTag = parsedHTMLContent.querySelector(domQuerySelectorToExtractProductData)
           const productInformation = JSON.parse(scriptTag.textContent)
-          productInformationFromLinks.push(productInformation)
+          extractedInformation.push(productInformation)
+          console.log({ link, index, lastLinkIndex, willResolve: index >= lastLinkIndex })
           if (index >= lastLinkIndex) {
-            resolve(productInformationFromLinks)
+            resolve(extractedInformation)
           }
         }
       }
     }
+  })
+}
+
+const processLinks = (links: string[]): Promise<any> => {
+  return new Promise<any>(async (resolve, reject) => {
+    if (!links?.length) {
+      reject('Please load at least one link')
+    }
+
+    const { shoePalace, shopNiceKicks }: LinksSplitDataObject = splitLinks(links)
+
+    const shoePalaceDomQuerySelector = 'script[id="ProductJson--product-template"]'
+    const shopNiceKicksDomQuerySelector = 'script[data-product-json]'
+
+    const shoePalaceInformation: any[] = await extractInformationFromLinks(shoePalace, shoePalaceDomQuerySelector)
+    const shopNiceKicksInformation: any[] = await extractInformationFromLinks(shopNiceKicks, shopNiceKicksDomQuerySelector)
+
+    resolve([...shoePalaceInformation, ...shopNiceKicksInformation])
   })
 }
 
