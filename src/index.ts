@@ -1,5 +1,6 @@
 import * as Discord from 'discord.js'
 import dotenv from 'dotenv'
+import {readMessage} from "./messages";
 
 dotenv.config()
 
@@ -11,7 +12,7 @@ client.on('ready', () => {
 
 client.on('message', msg => {
   if (msg?.content?.startsWith('!snk') || msg?.content?.startsWith('!sp')) {
-    msg.reply('Hello, I identified your correct usage of my prefix')
+    readMessage(msg)
   }
 })
 
