@@ -66,25 +66,20 @@ const extractInformationFromLinks = (links: string[] = [], domQuerySelectorToExt
 }
 
 const readAndFormatInformation = (productInformation: any[] = [], marketplace: MarketPlaces) => {
-  console.log({ productInformation })
   if (!productInformation?.length) {
     return null;
   }
 
   if (marketplace === SHOE_PALACE) {
     const mappedInformation = productInformation?.map((productInfo, index) => {
-      if (index === 0) {
-        console.log('product variants', productInfo?.variants);
+      return {
+        title: productInfo?.title,
+        thumbnail: productInfo?.media[0] ? productInfo?.media[0].src : '',
+        variants: productInfo?.variants,
       }
-      // const mappedFromVariants = productInfo?.variants?.map(variant => {
-      //
-      // })
-
-      return { name: 'Title', value: productInfo.title, inline: true }
     })
-
-    console.log({ mappedInformation })
     return mappedInformation;
+    // return [{name: 'Title', value: 'productInfo.title', inline: true}];
   }
 
   return null
@@ -126,15 +121,37 @@ export const readMessage = async (message: Discord.Message) => {
     }
 
     try {
+      message.reply(`Wait while we process the link${links?.length && links?.length > 1 ? 's' : ''}`)
       const response = await processLinks(links)
-      // message.reply(response)
-      const embed = new MessageEmbed()
-        .setTitle('Response')
-        .setColor(0x4A6FC3)
-        .addFields(response)
+      console.log({ response })
+      const embeds = response?.map(res => {
+        const embed = new MessageEmbed()
+          .setTitle(res?.title)
+          .setThumbnail(res?.thumbnail)
+          .setColor(0x4A6FC3)
+          .addFields(res?.variants?.map(variant => ({
+            name: variant?.title,
+            value: `
+            ==== Variant id ====
+            ${variant?.id}
+            
+            ==== SKU ====
+            ${variant?.sku}
+            
+            ==== Price ====
+            ${new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'USD' }).format(variant?.price / 100)}
+            
+            ==== Availability ====
+            ${res?.available ? '✅ AVAILABLE' : '❌ NOT AVAILABLE'}
+            `,
+            inline: false
+          })))
 
-      message.channel.send(embed)
+        return embed;
+      })
+      message.channel.send(embeds)
     } catch (err) {
+      message.reply(`Sorry, we couldn't process your link${links?.length && links?.length > 1 ? 's' : ''}`)
       message.reply(err)
     }
   }
