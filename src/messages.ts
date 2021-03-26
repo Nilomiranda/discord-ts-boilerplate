@@ -149,7 +149,11 @@ export const readMessage = async (message: Discord.Message) => {
 
         return embed;
       })
-      message.channel.send(embeds)
+
+      embeds?.forEach(embedMessage => {
+        message.channel.send(embedMessage)
+      })
+
     } catch (err) {
       message.reply(`Sorry, we couldn't process your link${links?.length && links?.length > 1 ? 's' : ''}`)
       message.reply(err)
