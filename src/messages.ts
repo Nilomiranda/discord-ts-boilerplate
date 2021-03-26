@@ -22,8 +22,8 @@ const splitLinks = (links: string[]): LinksSplitDataObject => {
   }
 
   return {
-    shoePalace: links.filter(link => link?.includes(SHOE_PALACE)),
-    shopNiceKicks: links.filter(link => link?.includes(SHOP_NICE_KICKS)),
+    shoePalace: Array.from(new Set(links.filter(link => link?.includes(SHOE_PALACE)))) || [],
+    shopNiceKicks: Array.from(new Set(links.filter(link => link?.includes(SHOP_NICE_KICKS)))) || [],
   }
 }
 
@@ -72,7 +72,16 @@ const readAndFormatInformation = (productInformation: any[] = [], marketplace: M
   }
 
   if (marketplace === SHOE_PALACE) {
-    const mappedInformation = productInformation?.map(productInfo => ({ name: 'Title', value: productInfo.title, inline: true }))
+    const mappedInformation = productInformation?.map((productInfo, index) => {
+      if (index === 0) {
+        console.log('product variants', productInfo?.variants);
+      }
+      // const mappedFromVariants = productInfo?.variants?.map(variant => {
+      //
+      // })
+
+      return { name: 'Title', value: productInfo.title, inline: true }
+    })
 
     console.log({ mappedInformation })
     return mappedInformation;
