@@ -2,6 +2,7 @@ import * as Discord from 'discord.js'
 import {extractUrls, isUrl} from "./common/identifyUrl";
 import { JSDOM } from 'jsdom'
 import {SHOE_PALACE, SHOP_NICE_KICKS} from "./common/constants";
+import AsciiTable from 'ascii-table'
 
 interface LinksSplitDataObject {
   shoePalace: string[];
@@ -27,10 +28,14 @@ const splitLinks = (links: string[]): LinksSplitDataObject => {
 }
 
 const extractInformationFromLinks = (links: string[] = [], domQuerySelectorToExtractProductData: string): Promise<any[]> => {
-  const extractedInformation: any[] = [];
-  const lastLinkIndex = links.length - 1;
-
   return new Promise(async (resolve) => {
+    const extractedInformation: any[] = [];
+    const lastLinkIndex = links.length - 1;
+
+    if (!links?.length) {
+      resolve([])
+    }
+
     for (let index = 0; index < links.length; index++) {
       let link = links[index];
 
@@ -78,7 +83,7 @@ const processLinks = (links: string[]): Promise<any> => {
   })
 }
 
-export const readMessage = (message: Discord.Message) => {
+export const readMessage = async (message: Discord.Message) => {
   const { content } = message || {};
 
   if (!content) {
@@ -91,10 +96,11 @@ export const readMessage = (message: Discord.Message) => {
       return message.reply('Please, inform at least one link')
     }
 
-    processLinks(links).then(res => {
-      message.reply(res)
-    }).catch(err => {
+    try {
+      const response = await processLinks(links)
+      message.reply(response)
+    } catch (err) {
       message.reply(err)
-    })
+    }
   }
 }
