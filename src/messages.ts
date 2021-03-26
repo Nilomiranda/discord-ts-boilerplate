@@ -1,8 +1,8 @@
 import * as Discord from 'discord.js'
 import {extractUrls, isUrl} from "./common/identifyUrl";
-import { JSDOM } from 'jsdom'
-import {SHOE_PALACE, SHOP_NICE_KICKS} from "./common/constants";
-import AsciiTable from 'ascii-table'
+import {JSDOM} from 'jsdom'
+import {MarketPlaces, SHOE_PALACE, SHOP_NICE_KICKS} from "./common/constants";
+import {MessageEmbed} from "discord.js";
 
 interface LinksSplitDataObject {
   shoePalace: string[];
@@ -65,6 +65,24 @@ const extractInformationFromLinks = (links: string[] = [], domQuerySelectorToExt
   })
 }
 
+const readAndFormatInformation = (productInformation: any[] = [], marketplace: MarketPlaces) => {
+  console.log({ productInformation })
+  if (!productInformation?.length) {
+    return null;
+  }
+
+  if (marketplace === SHOE_PALACE) {
+    const mappedInformation = productInformation?.map(productInfo => ({ name: 'Title', value: productInfo.title, inline: true }))
+
+    console.log({ mappedInformation })
+    return mappedInformation;
+  }
+
+  return null
+
+  // todo add handler for shop nice kicks
+}
+
 const processLinks = (links: string[]): Promise<any> => {
   return new Promise<any>(async (resolve, reject) => {
     if (!links?.length) {
@@ -79,7 +97,9 @@ const processLinks = (links: string[]): Promise<any> => {
     const shoePalaceInformation: any[] = await extractInformationFromLinks(shoePalace, shoePalaceDomQuerySelector)
     const shopNiceKicksInformation: any[] = await extractInformationFromLinks(shopNiceKicks, shopNiceKicksDomQuerySelector)
 
-    resolve([...shoePalaceInformation, ...shopNiceKicksInformation])
+    resolve(readAndFormatInformation(shoePalaceInformation, MarketPlaces.SHOE_PALACE))
+
+    // resolve([...shoePalaceInformation, ...shopNiceKicksInformation])
   })
 }
 
@@ -98,7 +118,13 @@ export const readMessage = async (message: Discord.Message) => {
 
     try {
       const response = await processLinks(links)
-      message.reply(response)
+      // message.reply(response)
+      const embed = new MessageEmbed()
+        .setTitle('Response')
+        .setColor(0x4A6FC3)
+        .addFields(response)
+
+      message.channel.send(embed)
     } catch (err) {
       message.reply(err)
     }
