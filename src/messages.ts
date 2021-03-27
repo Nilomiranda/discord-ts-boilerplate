@@ -9,10 +9,12 @@ interface LinksSplitDataObject {
   shopNiceKicks: string[];
 }
 
+// from user message to bot, extract any valid URL
 const getLinks = (content: string): string[] => {
   return extractUrls(content)
 }
 
+// will split links in separate arrays for Shoe Palace and Shop Nice Kicks
 const splitLinks = (links: string[]): LinksSplitDataObject => {
   if (!links?.length) {
     return {
@@ -27,6 +29,7 @@ const splitLinks = (links: string[]): LinksSplitDataObject => {
   }
 }
 
+// get product information from each link
 const extractInformationFromLinks = (links: string[] = [], domQuerySelectorToExtractProductData: string): Promise<any[]> => {
   return new Promise(async (resolve) => {
     const extractedInformation: any[] = [];
@@ -65,6 +68,7 @@ const extractInformationFromLinks = (links: string[] = [], domQuerySelectorToExt
   })
 }
 
+// from extract information, read and map to a better format to create the embeds
 const readAndFormatInformation = (productInformation: any[] = [], marketplace: MarketPlaces) => {
   if (!productInformation?.length) {
     return null;
@@ -93,6 +97,7 @@ const readAndFormatInformation = (productInformation: any[] = [], marketplace: M
   return null;
 }
 
+// central function to call each function above and pass formatted data to callee
 const processLinks = (links: string[]): Promise<any> => {
   return new Promise<any>(async (resolve, reject) => {
     if (!links?.length) {
@@ -111,6 +116,7 @@ const processLinks = (links: string[]): Promise<any> => {
   })
 }
 
+// create discord embed response format
 const createEmbedResponse = (mappedData: any[]) => {
   return mappedData?.map(data => {
     return new MessageEmbed()
@@ -130,6 +136,7 @@ const createEmbedResponse = (mappedData: any[]) => {
   })
 }
 
+// read message, and call function to process links (if they were passed
 export const readMessage = async (message: Discord.Message) => {
   const { content } = message || {};
 
