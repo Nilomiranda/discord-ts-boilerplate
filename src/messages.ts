@@ -71,20 +71,26 @@ const readAndFormatInformation = (productInformation: any[] = [], marketplace: M
   }
 
   if (marketplace === SHOE_PALACE) {
-    const mappedInformation = productInformation?.map((productInfo, index) => {
+    return productInformation?.map((productInfo, index) => {
       return {
         title: productInfo?.title,
-        thumbnail: productInfo?.media[0] ? productInfo?.media[0].src : '',
+        thumbnail: productInfo?.media && productInfo?.media[0] ? productInfo?.media[0].src : '',
         variants: productInfo?.variants,
       }
     })
-    return mappedInformation;
-    // return [{name: 'Title', value: 'productInfo.title', inline: true}];
   }
 
-  return null
+  if (marketplace === SHOP_NICE_KICKS) {
+    return productInformation?.map((productInfo, index) => {
+      return {
+        title: productInfo?.product?.title,
+        thumbnail: productInfo?.product?.media && productInfo?.product?.media[0] ? productInfo?.product?.media[0].src : '',
+        variants: productInfo?.product?.variants,
+      }
+    })
+  }
 
-  // todo add handler for shop nice kicks
+  return null;
 }
 
 const processLinks = (links: string[]): Promise<any> => {
@@ -101,9 +107,26 @@ const processLinks = (links: string[]): Promise<any> => {
     const shoePalaceInformation: any[] = await extractInformationFromLinks(shoePalace, shoePalaceDomQuerySelector)
     const shopNiceKicksInformation: any[] = await extractInformationFromLinks(shopNiceKicks, shopNiceKicksDomQuerySelector)
 
-    resolve(readAndFormatInformation(shoePalaceInformation, MarketPlaces.SHOE_PALACE))
+    resolve([readAndFormatInformation(shoePalaceInformation, MarketPlaces.SHOE_PALACE), readAndFormatInformation(shopNiceKicksInformation, MarketPlaces.SHOP_NICE_KICKS)])
+  })
+}
 
-    // resolve([...shoePalaceInformation, ...shopNiceKicksInformation])
+const createEmbedResponse = (mappedData: any[]) => {
+  return mappedData?.map(data => {
+    return new MessageEmbed()
+        .setTitle(data?.title)
+        .setThumbnail(data?.thumbnail)
+        .setColor(0x4A6FC3)
+        .addField(
+            'Size-Variant',
+            `\`\`\`${data?.variants?.map(variant => `${variant?.option2}-${variant?.id}\n`).join('')}\`\`\``,
+            true,
+        )
+        .addField(
+            'Variant',
+            `\`\`\`${data?.variants?.map(variant => `${variant?.id}\n`).join('')}\`\`\``,
+            true,
+        )
   })
 }
 
@@ -122,36 +145,16 @@ export const readMessage = async (message: Discord.Message) => {
 
     try {
       message.reply(`Wait while we process the link${links?.length && links?.length > 1 ? 's' : ''}`)
-      const response = await processLinks(links)
-      console.log({ response })
-      const embeds = response?.map(res => {
-        const embed = new MessageEmbed()
-          .setTitle(res?.title)
-          .setThumbnail(res?.thumbnail)
-          .setColor(0x4A6FC3)
-          .addFields(res?.variants?.map(variant => ({
-            name: variant?.title,
-            value: `
-            ==== Variant id ====
-            ${variant?.id}
-            
-            ==== SKU ====
-            ${variant?.sku}
-            
-            ==== Price ====
-            ${new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'USD' }).format(variant?.price / 100)}
-            
-            ==== Availability ====
-            ${res?.available ? '✅ AVAILABLE' : '❌ NOT AVAILABLE'}
-            `,
-            inline: false
-          })))
+      const [shoePalaceResponse, shopNiceKicksResponse] = await processLinks(links)
 
-        return embed;
-      })
+      const shoePalaceEmbeds = createEmbedResponse(shoePalaceResponse)
 
-      embeds?.forEach(embedMessage => {
-        message.channel.send(embedMessage)
+      const shopNiceKicksEmbeds = createEmbedResponse(shopNiceKicksResponse)
+
+      const embeds = [...shoePalaceEmbeds, ...shopNiceKicksEmbeds]
+
+      embeds.forEach(embed => {
+        message.channel.send(embed)
       })
 
     } catch (err) {
