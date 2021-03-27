@@ -30,11 +30,16 @@
     "tsc-watch": "^4.2.9",
     "typescript": "^4.2.3"
   },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": "eslint --cache --fix",
-    "*.{js,css,md}": "prettier --write"
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "yarn build"
+    }
   },
-  "simple-git-hooks": {
-    "pre-commit": "npx lint-staged"
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix --max-warnings=0",
+      "git add"
+    ]
   }
 }
