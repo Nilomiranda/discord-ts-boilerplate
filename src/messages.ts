@@ -3,6 +3,7 @@ import {extractUrls, isUrl} from "./common/identifyUrl";
 import {JSDOM} from 'jsdom'
 import {MarketPlaces, SHOE_PALACE, SHOP_NICE_KICKS} from "./common/constants";
 import {MessageEmbed} from "discord.js";
+import {Product, ProductVariant} from "./common/interfaces";
 
 interface LinksSplitDataObject {
   shoePalace: string[];
@@ -30,7 +31,7 @@ const splitLinks = (links: string[]): LinksSplitDataObject => {
 }
 
 // get product information from each link
-const extractInformationFromLinks = (links: string[] = [], domQuerySelectorToExtractProductData: string): Promise<any[]> => {
+const extractInformationFromLinks = (links: string[] = [], domQuerySelectorToExtractProductData: string): Promise<Product[] | { product: Product }[]> => {
   return new Promise(async (resolve) => {
     const extractedInformation: any[] = [];
     const lastLinkIndex = links.length - 1;
@@ -69,7 +70,7 @@ const extractInformationFromLinks = (links: string[] = [], domQuerySelectorToExt
 }
 
 // from extract information, read and map to a better format to create the embeds
-const readAndFormatInformation = (productInformation: any[] = [], marketplace: MarketPlaces) => {
+const readAndFormatInformation = (productInformation: Product[] | { product: Product }[] = [], marketplace: MarketPlaces): { thumbnail: string; variants: ProductVariant[]; title: string; }[] => {
   if (!productInformation?.length) {
     return null;
   }
@@ -98,7 +99,7 @@ const readAndFormatInformation = (productInformation: any[] = [], marketplace: M
 }
 
 // central function to call each function above and pass formatted data to callee
-const processLinks = (links: string[]): Promise<any> => {
+const processLinks = (links: string[]): Promise<{ thumbnail: string; variants: ProductVariant[]; title: string; }[][]> => {
   return new Promise<any>(async (resolve, reject) => {
     if (!links?.length) {
       reject('Please load at least one link')
@@ -109,8 +110,8 @@ const processLinks = (links: string[]): Promise<any> => {
     const shoePalaceDomQuerySelector = 'script[id="ProductJson--product-template"]'
     const shopNiceKicksDomQuerySelector = 'script[data-product-json]'
 
-    const shoePalaceInformation: any[] = await extractInformationFromLinks(shoePalace, shoePalaceDomQuerySelector)
-    const shopNiceKicksInformation: any[] = await extractInformationFromLinks(shopNiceKicks, shopNiceKicksDomQuerySelector)
+    const shoePalaceInformation: Product[] = await extractInformationFromLinks(shoePalace, shoePalaceDomQuerySelector) as Product[]
+    const shopNiceKicksInformation: { product: Product }[] = await extractInformationFromLinks(shopNiceKicks, shopNiceKicksDomQuerySelector) as { product: Product }[]
 
     resolve([readAndFormatInformation(shoePalaceInformation, MarketPlaces.SHOE_PALACE), readAndFormatInformation(shopNiceKicksInformation, MarketPlaces.SHOP_NICE_KICKS)])
   })
