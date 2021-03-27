@@ -25,14 +25,8 @@ const splitLinks = (links: string[]): LinksSplitDataObject => {
   }
 
   return {
-    shoePalace:
-      Array.from(
-        new Set(links.filter((link) => link?.includes(SHOE_PALACE)))
-      ) || [],
-    shopNiceKicks:
-      Array.from(
-        new Set(links.filter((link) => link?.includes(SHOP_NICE_KICKS)))
-      ) || [],
+    shoePalace: Array.from(new Set(links.filter((link) => link?.includes(SHOE_PALACE)))) || [],
+    shopNiceKicks: Array.from(new Set(links.filter((link) => link?.includes(SHOP_NICE_KICKS)))) || [],
   }
 }
 
@@ -65,13 +59,8 @@ const extractInformationFromLinks = (
         if (serializedDOM) {
           const nodeWindow = new JSDOM().window
           const domParser = new nodeWindow.DOMParser()
-          const parsedHTMLContent = domParser.parseFromString(
-            serializedDOM,
-            'text/html'
-          )
-          const scriptTag = parsedHTMLContent.querySelector(
-            domQuerySelectorToExtractProductData
-          )
+          const parsedHTMLContent = domParser.parseFromString(serializedDOM, 'text/html')
+          const scriptTag = parsedHTMLContent.querySelector(domQuerySelectorToExtractProductData)
           const productInformation = JSON.parse(scriptTag.textContent)
           extractedInformation.push(productInformation)
           if (index >= lastLinkIndex) {
@@ -96,10 +85,7 @@ const readAndFormatInformation = (
     return productInformation?.map((productInfo, index) => {
       return {
         title: productInfo?.title,
-        thumbnail:
-          productInfo?.media && productInfo?.media[0]
-            ? productInfo?.media[0].src
-            : '',
+        thumbnail: productInfo?.media && productInfo?.media[0] ? productInfo?.media[0].src : '',
         variants: productInfo?.variants,
       }
     })
@@ -110,9 +96,7 @@ const readAndFormatInformation = (
       return {
         title: productInfo?.product?.title,
         thumbnail:
-          productInfo?.product?.media && productInfo?.product?.media[0]
-            ? productInfo?.product?.media[0].src
-            : '',
+          productInfo?.product?.media && productInfo?.product?.media[0] ? productInfo?.product?.media[0].src : '',
         variants: productInfo?.product?.variants,
       }
     })
@@ -124,20 +108,15 @@ const readAndFormatInformation = (
 // central function to call each function above and pass formatted data to callee
 const processLinks = (
   links: string[]
-): Promise<
-  { thumbnail: string; variants: ProductVariant[]; title: string }[][]
-> => {
+): Promise<{ thumbnail: string; variants: ProductVariant[]; title: string }[][]> => {
   return new Promise<any>(async (resolve, reject) => {
     if (!links?.length) {
       reject('Please load at least one link')
     }
 
-    const { shoePalace, shopNiceKicks }: LinksSplitDataObject = splitLinks(
-      links
-    )
+    const { shoePalace, shopNiceKicks }: LinksSplitDataObject = splitLinks(links)
 
-    const shoePalaceDomQuerySelector =
-      'script[id="ProductJson--product-template"]'
+    const shoePalaceDomQuerySelector = 'script[id="ProductJson--product-template"]'
     const shopNiceKicksDomQuerySelector = 'script[data-product-json]'
 
     const shoePalaceInformation: Product[] = (await extractInformationFromLinks(
@@ -146,17 +125,11 @@ const processLinks = (
     )) as Product[]
     const shopNiceKicksInformation: {
       product: Product
-    }[] = (await extractInformationFromLinks(
-      shopNiceKicks,
-      shopNiceKicksDomQuerySelector
-    )) as { product: Product }[]
+    }[] = (await extractInformationFromLinks(shopNiceKicks, shopNiceKicksDomQuerySelector)) as { product: Product }[]
 
     resolve([
       readAndFormatInformation(shoePalaceInformation, MarketPlaces.SHOE_PALACE),
-      readAndFormatInformation(
-        shopNiceKicksInformation,
-        MarketPlaces.SHOP_NICE_KICKS
-      ),
+      readAndFormatInformation(shopNiceKicksInformation, MarketPlaces.SHOP_NICE_KICKS),
     ])
   })
 }
@@ -173,22 +146,12 @@ const createEmbedResponse = (mappedData: any[], marketplace: MarketPlaces) => {
         `\`\`\`${data?.variants
           ?.map(
             (variant) =>
-              `${
-                marketplace === MarketPlaces.SHOE_PALACE
-                  ? variant?.option2
-                  : variant?.option1
-              }-${variant?.id}\n`
+              `${marketplace === MarketPlaces.SHOE_PALACE ? variant?.option2 : variant?.option1}-${variant?.id}\n`
           )
           .join('')}\`\`\``,
         true
       )
-      .addField(
-        'Variant',
-        `\`\`\`${data?.variants
-          ?.map((variant) => `${variant?.id}\n`)
-          .join('')}\`\`\``,
-        true
-      )
+      .addField('Variant', `\`\`\`${data?.variants?.map((variant) => `${variant?.id}\n`).join('')}\`\`\``, true)
   })
 }
 
@@ -207,24 +170,12 @@ export const readMessage = async (message: Discord.Message) => {
     }
 
     try {
-      message.reply(
-        `Wait while we process the link${
-          links?.length && links?.length > 1 ? 's' : ''
-        }`
-      )
-      const [shoePalaceResponse, shopNiceKicksResponse] = await processLinks(
-        links
-      )
+      message.reply(`Wait while we process the link${links?.length && links?.length > 1 ? 's' : ''}`)
+      const [shoePalaceResponse, shopNiceKicksResponse] = await processLinks(links)
 
-      const shoePalaceEmbeds = createEmbedResponse(
-        shoePalaceResponse,
-        MarketPlaces.SHOE_PALACE
-      )
+      const shoePalaceEmbeds = createEmbedResponse(shoePalaceResponse, MarketPlaces.SHOE_PALACE)
 
-      const shopNiceKicksEmbeds = createEmbedResponse(
-        shopNiceKicksResponse,
-        MarketPlaces.SHOP_NICE_KICKS
-      )
+      const shopNiceKicksEmbeds = createEmbedResponse(shopNiceKicksResponse, MarketPlaces.SHOP_NICE_KICKS)
 
       const embeds = [...shoePalaceEmbeds, ...shopNiceKicksEmbeds]
 
@@ -232,11 +183,7 @@ export const readMessage = async (message: Discord.Message) => {
         message.channel.send(embed)
       })
     } catch (err) {
-      message.reply(
-        `Sorry, we couldn't process your link${
-          links?.length && links?.length > 1 ? 's' : ''
-        }`
-      )
+      message.reply(`Sorry, we couldn't process your link${links?.length && links?.length > 1 ? 's' : ''}`)
       message.reply(err)
     }
   }
