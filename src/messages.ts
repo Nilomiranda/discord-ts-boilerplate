@@ -2,7 +2,7 @@ import * as Discord from 'discord.js'
 import { Message, MessageEmbed } from 'discord.js'
 import { extractUrls, isUrl } from './common/identifyUrl'
 import { JSDOM } from 'jsdom'
-import { MarketPlaces, SHOE_PALACE, SHOP_NICE_KICKS } from './common/constants'
+import { marketPlaceNames, MarketPlaces, SHOE_PALACE, SHOP_NICE_KICKS } from './common/constants'
 import { Product, ProductVariant } from './common/interfaces'
 
 interface LinksSplitDataObject {
@@ -61,7 +61,7 @@ const extractInformationFromLinks = async (
         const parsedHTMLContent = domParser.parseFromString(serializedDOM, 'text/html')
         const scriptTag = parsedHTMLContent.querySelector(domQuerySelectorToExtractProductData)
         const productInformation = JSON.parse(scriptTag.textContent)
-        extractedInformation.push(productInformation)
+        extractedInformation.push({ ...productInformation, link })
         if (index >= lastLinkIndex) {
           return extractedInformation
         }
@@ -74,14 +74,17 @@ const extractInformationFromLinks = async (
 const readAndFormatInformation = (
   productInformation: Product[] | { product: Product }[] = [],
   marketplace: MarketPlaces
-): { thumbnail: string; variants: ProductVariant[]; title: string }[] => {
+): { thumbnail: string; variants: ProductVariant[]; title: string; link: string }[] => {
   if (!productInformation?.length) {
     return null
   }
 
   if (marketplace === SHOE_PALACE) {
     return productInformation?.map((productInfo) => {
+      const [url] = (productInfo as Product)?.link?.split('?')
+
       return {
+        link: url,
         title: productInfo?.title,
         thumbnail: productInfo?.media && productInfo?.media[0] ? productInfo?.media[0].src : '',
         variants: productInfo?.variants,
@@ -91,7 +94,10 @@ const readAndFormatInformation = (
 
   if (marketplace === SHOP_NICE_KICKS) {
     return productInformation?.map((productInfo) => {
+      const [url] = productInfo?.link?.split('?')
+
       return {
+        link: url,
         title: productInfo?.product?.title,
         thumbnail: productInfo?.product?.media && productInfo?.product?.media[0] ? productInfo?.product?.media[0].src : '',
         variants: productInfo?.product?.variants,
@@ -103,7 +109,7 @@ const readAndFormatInformation = (
 }
 
 // central function to call each function above and pass formatted data to callee
-const processLinks = async (links: string[]): Promise<{ thumbnail: string; variants: ProductVariant[]; title: string }[][]> => {
+const processLinks = async (links: string[]): Promise<{ thumbnail: string; variants: ProductVariant[]; title: string; link: string }[][]> => {
   if (!links?.length) {
     return []
   }
@@ -126,12 +132,17 @@ const processLinks = async (links: string[]): Promise<{ thumbnail: string; varia
 }
 
 // create discord embed response format
-const createEmbedResponse = (mappedData: { thumbnail: string; variants: ProductVariant[]; title: string }[], marketplace: MarketPlaces) => {
+const createEmbedResponse = (
+  mappedData: { thumbnail: string; variants: ProductVariant[]; title: string; link: string }[],
+  marketplace: MarketPlaces
+) => {
   return mappedData?.map((data) => {
     return new MessageEmbed()
       .setTitle(data?.title)
       .setThumbnail(data?.thumbnail)
       .setColor(0x4a6fc3)
+      .addField('Store', `\`\`\`${marketPlaceNames[marketplace]}\`\`\``)
+      .addField('Product Link', data?.link)
       .addField(
         'Size-Variant',
         `\`\`\`${data?.variants
@@ -161,15 +172,21 @@ export const readMessage = async (message: Discord.Message): Promise<Message> =>
       message.reply(`Wait while we process the link${links?.length && links?.length > 1 ? 's' : ''}`)
       const [shoePalaceResponse, shopNiceKicksResponse] = await processLinks(links)
 
-      const shoePalaceEmbeds = createEmbedResponse(shoePalaceResponse, MarketPlaces.SHOE_PALACE)
+      const shoePalaceEmbeds = shoePalaceResponse?.length ? createEmbedResponse(shoePalaceResponse, MarketPlaces.SHOE_PALACE) : []
 
-      const shopNiceKicksEmbeds = createEmbedResponse(shopNiceKicksResponse, MarketPlaces.SHOP_NICE_KICKS)
+      const shopNiceKicksEmbeds = shopNiceKicksResponse?.length ? createEmbedResponse(shopNiceKicksResponse, MarketPlaces.SHOP_NICE_KICKS) : []
 
-      const embeds = [...shoePalaceEmbeds, ...shopNiceKicksEmbeds]
+      if (shoePalaceEmbeds?.length) {
+        shoePalaceEmbeds.forEach((embed) => {
+          message.channel.send(embed)
+        })
+      }
 
-      embeds.forEach((embed) => {
-        message.channel.send(embed)
-      })
+      if (shopNiceKicksEmbeds?.length) {
+        shopNiceKicksEmbeds.forEach((embed) => {
+          message.channel.send(embed)
+        })
+      }
     } catch (err) {
       message.reply(`Sorry, we couldn't process your link${links?.length && links?.length > 1 ? 's' : ''}`)
       message.reply(err)

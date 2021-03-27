@@ -39,6 +39,7 @@ export interface ProductVariant {
 }
 
 export interface Product {
+  link?: string
   id: number
   title: string
   handle: string

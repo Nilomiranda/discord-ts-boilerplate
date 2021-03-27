@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "yarn eslint . --ext .js,.jsx,.ts,.tsx",
     "dev": "node dist/index.js",
-    "watch": "tsc-watch --onSuccess 'yarn dev'"
+    "watch": "rm -rf dist && tsc-watch --onSuccess 'yarn dev'"
   },
   "dependencies": {
     "ascii-table": "^0.0.9",
