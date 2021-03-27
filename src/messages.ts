@@ -1,5 +1,5 @@
 import * as Discord from 'discord.js'
-import { MessageEmbed } from 'discord.js'
+import { Message, MessageEmbed } from 'discord.js'
 import { extractUrls, isUrl } from './common/identifyUrl'
 import { JSDOM } from 'jsdom'
 import { MarketPlaces, SHOE_PALACE, SHOP_NICE_KICKS } from './common/constants'
@@ -31,45 +31,43 @@ const splitLinks = (links: string[]): LinksSplitDataObject => {
 }
 
 // get product information from each link
-const extractInformationFromLinks = (
+const extractInformationFromLinks = async (
   links: string[] = [],
   domQuerySelectorToExtractProductData: string
 ): Promise<Product[] | { product: Product }[]> => {
-  return new Promise(async (resolve) => {
-    const extractedInformation: any[] = []
-    const lastLinkIndex = links.length - 1
+  const extractedInformation: Product[] | { product: Product }[] = []
+  const lastLinkIndex = links.length - 1
 
-    if (!links?.length) {
-      resolve([])
+  if (!links?.length) {
+    return []
+  }
+
+  for (let index = 0; index < links.length; index++) {
+    const link = links[index]
+
+    // skip iteration if link is not a valid url
+    if (!isUrl(link) || !domQuerySelectorToExtractProductData) {
+      continue
     }
 
-    for (let index = 0; index < links.length; index++) {
-      const link = links[index]
+    const dom = await JSDOM.fromURL(link)
 
-      // skip iteration if link is not a valid url
-      if (!isUrl(link) || !domQuerySelectorToExtractProductData) {
-        continue
-      }
+    if (dom) {
+      const serializedDOM = dom?.serialize()
 
-      const dom = await JSDOM.fromURL(link)
-
-      if (dom) {
-        const serializedDOM = dom?.serialize()
-
-        if (serializedDOM) {
-          const nodeWindow = new JSDOM().window
-          const domParser = new nodeWindow.DOMParser()
-          const parsedHTMLContent = domParser.parseFromString(serializedDOM, 'text/html')
-          const scriptTag = parsedHTMLContent.querySelector(domQuerySelectorToExtractProductData)
-          const productInformation = JSON.parse(scriptTag.textContent)
-          extractedInformation.push(productInformation)
-          if (index >= lastLinkIndex) {
-            resolve(extractedInformation)
-          }
+      if (serializedDOM) {
+        const nodeWindow = new JSDOM().window
+        const domParser = new nodeWindow.DOMParser()
+        const parsedHTMLContent = domParser.parseFromString(serializedDOM, 'text/html')
+        const scriptTag = parsedHTMLContent.querySelector(domQuerySelectorToExtractProductData)
+        const productInformation = JSON.parse(scriptTag.textContent)
+        extractedInformation.push(productInformation)
+        if (index >= lastLinkIndex) {
+          return extractedInformation
         }
       }
     }
-  })
+  }
 }
 
 // from extract information, read and map to a better format to create the embeds
@@ -95,8 +93,7 @@ const readAndFormatInformation = (
     return productInformation?.map((productInfo) => {
       return {
         title: productInfo?.product?.title,
-        thumbnail:
-          productInfo?.product?.media && productInfo?.product?.media[0] ? productInfo?.product?.media[0].src : '',
+        thumbnail: productInfo?.product?.media && productInfo?.product?.media[0] ? productInfo?.product?.media[0].src : '',
         variants: productInfo?.product?.variants,
       }
     })
@@ -106,36 +103,30 @@ const readAndFormatInformation = (
 }
 
 // central function to call each function above and pass formatted data to callee
-const processLinks = (
-  links: string[]
-): Promise<{ thumbnail: string; variants: ProductVariant[]; title: string }[][]> => {
-  return new Promise<any>(async (resolve, reject) => {
-    if (!links?.length) {
-      reject('Please load at least one link')
-    }
+const processLinks = async (links: string[]): Promise<{ thumbnail: string; variants: ProductVariant[]; title: string }[][]> => {
+  if (!links?.length) {
+    return []
+  }
 
-    const { shoePalace, shopNiceKicks }: LinksSplitDataObject = splitLinks(links)
+  const { shoePalace, shopNiceKicks }: LinksSplitDataObject = splitLinks(links)
 
-    const shoePalaceDomQuerySelector = 'script[id="ProductJson--product-template"]'
-    const shopNiceKicksDomQuerySelector = 'script[data-product-json]'
+  const shoePalaceDomQuerySelector = 'script[id="ProductJson--product-template"]'
+  const shopNiceKicksDomQuerySelector = 'script[data-product-json]'
 
-    const shoePalaceInformation: Product[] = (await extractInformationFromLinks(
-      shoePalace,
-      shoePalaceDomQuerySelector
-    )) as Product[]
-    const shopNiceKicksInformation: {
-      product: Product
-    }[] = (await extractInformationFromLinks(shopNiceKicks, shopNiceKicksDomQuerySelector)) as { product: Product }[]
+  const shoePalaceInformation: Product[] = (await extractInformationFromLinks(shoePalace, shoePalaceDomQuerySelector)) as Product[]
 
-    resolve([
-      readAndFormatInformation(shoePalaceInformation, MarketPlaces.SHOE_PALACE),
-      readAndFormatInformation(shopNiceKicksInformation, MarketPlaces.SHOP_NICE_KICKS),
-    ])
-  })
+  const shopNiceKicksInformation: {
+    product: Product
+  }[] = (await extractInformationFromLinks(shopNiceKicks, shopNiceKicksDomQuerySelector)) as { product: Product }[]
+
+  return [
+    readAndFormatInformation(shoePalaceInformation, MarketPlaces.SHOE_PALACE),
+    readAndFormatInformation(shopNiceKicksInformation, MarketPlaces.SHOP_NICE_KICKS),
+  ]
 }
 
 // create discord embed response format
-const createEmbedResponse = (mappedData: any[], marketplace: MarketPlaces) => {
+const createEmbedResponse = (mappedData: { thumbnail: string; variants: ProductVariant[]; title: string }[], marketplace: MarketPlaces) => {
   return mappedData?.map((data) => {
     return new MessageEmbed()
       .setTitle(data?.title)
@@ -144,10 +135,7 @@ const createEmbedResponse = (mappedData: any[], marketplace: MarketPlaces) => {
       .addField(
         'Size-Variant',
         `\`\`\`${data?.variants
-          ?.map(
-            (variant) =>
-              `${marketplace === MarketPlaces.SHOE_PALACE ? variant?.option2 : variant?.option1}-${variant?.id}\n`
-          )
+          ?.map((variant) => `${marketplace === MarketPlaces.SHOE_PALACE ? variant?.option2 : variant?.option1}-${variant?.id}\n`)
           .join('')}\`\`\``,
         true
       )
@@ -156,7 +144,7 @@ const createEmbedResponse = (mappedData: any[], marketplace: MarketPlaces) => {
 }
 
 // read message, and call function to process links (if they were passed
-export const readMessage = async (message: Discord.Message) => {
+export const readMessage = async (message: Discord.Message): Promise<Message> => {
   const { content } = message || {}
 
   if (!content) {
