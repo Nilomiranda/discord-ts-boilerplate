@@ -137,7 +137,7 @@ const processLinks = (
     )
 
     const shoePalaceDomQuerySelector =
-      'script[id="ProductJson--product-templae"]'
+      'script[id="ProductJson--product-template"]'
     const shopNiceKicksDomQuerySelector = 'script[data-product-json]'
 
     const shoePalaceInformation: Product[] = (await extractInformationFromLinks(
