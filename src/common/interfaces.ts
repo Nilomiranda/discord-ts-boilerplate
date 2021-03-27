@@ -20,11 +20,11 @@ export interface ProductVariant {
   title: string;
   option1: string;
   option2: string;
-  option3: null,
+  option3: string;
   sku: string;
   requires_shipping: boolean;
   taxable: boolean;
-  featured_image: null,
+  featured_image: string;
   available: false,
   name: string;
   public_title: string;

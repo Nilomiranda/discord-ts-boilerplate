@@ -1,8 +1,8 @@
 import * as Discord from 'discord.js'
+import {MessageEmbed} from 'discord.js'
 import {extractUrls, isUrl} from "./common/identifyUrl";
 import {JSDOM} from 'jsdom'
 import {MarketPlaces, SHOE_PALACE, SHOP_NICE_KICKS} from "./common/constants";
-import {MessageEmbed} from "discord.js";
 import {Product, ProductVariant} from "./common/interfaces";
 
 interface LinksSplitDataObject {
@@ -118,7 +118,7 @@ const processLinks = (links: string[]): Promise<{ thumbnail: string; variants: P
 }
 
 // create discord embed response format
-const createEmbedResponse = (mappedData: any[]) => {
+const createEmbedResponse = (mappedData: any[], marketplace: MarketPlaces) => {
   return mappedData?.map(data => {
     return new MessageEmbed()
         .setTitle(data?.title)
@@ -126,7 +126,7 @@ const createEmbedResponse = (mappedData: any[]) => {
         .setColor(0x4A6FC3)
         .addField(
             'Size-Variant',
-            `\`\`\`${data?.variants?.map(variant => `${variant?.option2}-${variant?.id}\n`).join('')}\`\`\``,
+            `\`\`\`${data?.variants?.map(variant => `${marketplace === MarketPlaces.SHOE_PALACE ? variant?.option2 : variant?.option1}-${variant?.id}\n`).join('')}\`\`\``,
             true,
         )
         .addField(
@@ -155,9 +155,9 @@ export const readMessage = async (message: Discord.Message) => {
       message.reply(`Wait while we process the link${links?.length && links?.length > 1 ? 's' : ''}`)
       const [shoePalaceResponse, shopNiceKicksResponse] = await processLinks(links)
 
-      const shoePalaceEmbeds = createEmbedResponse(shoePalaceResponse)
+      const shoePalaceEmbeds = createEmbedResponse(shoePalaceResponse, MarketPlaces.SHOE_PALACE)
 
-      const shopNiceKicksEmbeds = createEmbedResponse(shopNiceKicksResponse)
+      const shopNiceKicksEmbeds = createEmbedResponse(shopNiceKicksResponse, MarketPlaces.SHOP_NICE_KICKS)
 
       const embeds = [...shoePalaceEmbeds, ...shopNiceKicksEmbeds]
 
