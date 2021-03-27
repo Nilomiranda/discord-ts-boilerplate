@@ -44,7 +44,7 @@ const extractInformationFromLinks = (
     }
 
     for (let index = 0; index < links.length; index++) {
-      let link = links[index]
+      const link = links[index]
 
       // skip iteration if link is not a valid url
       if (!isUrl(link) || !domQuerySelectorToExtractProductData) {
@@ -82,7 +82,7 @@ const readAndFormatInformation = (
   }
 
   if (marketplace === SHOE_PALACE) {
-    return productInformation?.map((productInfo, index) => {
+    return productInformation?.map((productInfo) => {
       return {
         title: productInfo?.title,
         thumbnail: productInfo?.media && productInfo?.media[0] ? productInfo?.media[0].src : '',
@@ -92,7 +92,7 @@ const readAndFormatInformation = (
   }
 
   if (marketplace === SHOP_NICE_KICKS) {
-    return productInformation?.map((productInfo, index) => {
+    return productInformation?.map((productInfo) => {
       return {
         title: productInfo?.product?.title,
         thumbnail:

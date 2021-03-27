@@ -32,11 +32,13 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged",
     }
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": "eslint --cache --fix && yarn prettier --write .",
-    "*.{js,css,md}": "prettier --write"
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix --max-warnings=0",
+      "yarn prettier --write ."
+    ]
   }
 }
