@@ -111,7 +111,7 @@ const processLinks = (
 ): Promise<{ thumbnail: string; variants: ProductVariant[]; title: string }[][]> => {
   return new Promise<any>(async (resolve, reject) => {
     if (!links?.length) {
-      reject('Please load at least one lin')
+      reject('Please load at least one link')
     }
 
     const { shoePalace, shopNiceKicks }: LinksSplitDataObject = splitLinks(links)
