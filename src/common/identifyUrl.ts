@@ -1,8 +1,8 @@
-const urlRegex: RegExp = /(?:(?:https?|ftp):\/\/|\b(?:[a-z\d]+\.))(?:(?:[^\s()<>]+|\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))?\))+(?:\((?:[^\s()<>]+|(?:\(?:[^\s()<>]+\)))?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))?/gmi
+const urlRegex: RegExp = /(?:(?:https?|ftp):\/\/|\b(?:[a-z\d]+\.))(?:(?:[^\s()<>]+|\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))?\))+(?:\((?:[^\s()<>]+|(?:\(?:[^\s()<>]+\)))?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))?/gim
 
 export const isUrl = (url: string): boolean => {
   if (!url) {
-    return false;
+    return false
   }
 
   return !!url.match(urlRegex)?.length
@@ -10,8 +10,8 @@ export const isUrl = (url: string): boolean => {
 
 export const extractUrls = (message: string): string[] => {
   if (!message) {
-    return [];
+    return []
   }
 
-  return message.match(urlRegex) || [];
+  return message.match(urlRegex) || []
 }
