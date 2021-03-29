@@ -154,6 +154,22 @@ const createEmbedResponse = (
   })
 }
 
+const checkForInvalidLinks = (message: string, links: string[] = []): { invalidLinks: boolean; message?: string } => {
+  if (!links?.length) {
+    return { invalidLinks: false }
+  }
+
+  if (message.includes('!snk') && links?.filter((link) => link.includes(SHOE_PALACE))?.length) {
+    return { invalidLinks: true, message: "This command only accepts Shop Nice Kicks' links" }
+  }
+
+  if (message.includes('!sp') && links?.filter((link) => link.includes(SHOP_NICE_KICKS))?.length) {
+    return { invalidLinks: true, message: "This command only accepts Shoe Palace's links" }
+  }
+
+  return { invalidLinks: false }
+}
+
 // read message, and call function to process links (if they were passed
 export const readMessage = async (message: Discord.Message): Promise<Message> => {
   const { content } = message || {}
@@ -166,6 +182,12 @@ export const readMessage = async (message: Discord.Message): Promise<Message> =>
     const links: string[] = getLinks(content)
     if (!links?.length) {
       return message.reply('Please, inform at least one link')
+    }
+
+    const { invalidLinks, message: invalidLinksMessage } = checkForInvalidLinks(content, links)
+
+    if (invalidLinks) {
+      return message.reply(invalidLinksMessage)
     }
 
     try {
