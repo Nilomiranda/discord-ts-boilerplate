@@ -10,6 +10,14 @@ interface LinksSplitDataObject {
   shopNiceKicks: string[]
 }
 
+interface ProcessedLinksDataObject {
+  thumbnail: string
+  variants: ProductVariant[]
+  title: string
+  link: string
+  price: number
+}
+
 // from user message to bot, extract any valid URL
 const getLinks = (content: string): string[] => {
   return extractUrls(content)
@@ -74,7 +82,7 @@ const extractInformationFromLinks = async (
 const readAndFormatInformation = (
   productInformation: Product[] | { product: Product }[] = [],
   marketplace: MarketPlaces
-): { thumbnail: string; variants: ProductVariant[]; title: string; link: string }[] => {
+): ProcessedLinksDataObject[] => {
   if (!productInformation?.length) {
     return null
   }
@@ -88,6 +96,7 @@ const readAndFormatInformation = (
         title: productInfo?.title,
         thumbnail: productInfo?.media && productInfo?.media[0] ? productInfo?.media[0].src : '',
         variants: productInfo?.variants,
+        price: productInfo?.price,
       }
     })
   }
@@ -101,6 +110,7 @@ const readAndFormatInformation = (
         title: productInfo?.product?.title,
         thumbnail: productInfo?.product?.media && productInfo?.product?.media[0] ? productInfo?.product?.media[0].src : '',
         variants: productInfo?.product?.variants,
+        price: productInfo?.product?.price,
       }
     })
   }
@@ -109,7 +119,7 @@ const readAndFormatInformation = (
 }
 
 // central function to call each function above and pass formatted data to callee
-const processLinks = async (links: string[]): Promise<{ thumbnail: string; variants: ProductVariant[]; title: string; link: string }[][]> => {
+const processLinks = async (links: string[]): Promise<ProcessedLinksDataObject[][]> => {
   if (!links?.length) {
     return []
   }
@@ -132,10 +142,7 @@ const processLinks = async (links: string[]): Promise<{ thumbnail: string; varia
 }
 
 // create discord embed response format
-const createEmbedResponse = (
-  mappedData: { thumbnail: string; variants: ProductVariant[]; title: string; link: string }[],
-  marketplace: MarketPlaces
-) => {
+const createEmbedResponse = (mappedData: ProcessedLinksDataObject[], marketplace: MarketPlaces) => {
   return mappedData?.map((data) => {
     return new MessageEmbed()
       .setTitle(data?.title)
@@ -143,6 +150,7 @@ const createEmbedResponse = (
       .setColor(0x4a6fc3)
       .addField('Store', `\`\`\`${marketPlaceNames[marketplace]}\`\`\``)
       .addField('Product Link', data?.link)
+      .addField('Price', `\`\`\`${new Intl.NumberFormat('en', { style: 'currency', currency: 'USD' }).format(data?.price / 100 || 0)}\`\`\``)
       .addField(
         'Size-Variant',
         `\`\`\`${data?.variants
