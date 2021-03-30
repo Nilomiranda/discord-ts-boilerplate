@@ -4,6 +4,7 @@ import { extractUrls, isUrl } from './common/identifyUrl'
 import { JSDOM } from 'jsdom'
 import { marketPlaceNames, MarketPlaces, SHOE_PALACE, SHOP_NICE_KICKS } from './common/constants'
 import { Product, ProductVariant } from './common/interfaces'
+import { UserRole, validateRoleOfRequestingUser } from './guards/rolesGuard'
 
 interface LinksSplitDataObject {
   shoePalace: string[]
@@ -180,7 +181,13 @@ const checkForInvalidLinks = (message: string, links: string[] = []): { invalidL
 
 // read message, and call function to process links (if they were passed
 export const readMessage = async (message: Discord.Message): Promise<Message> => {
-  const { content } = message || {}
+  const { content, member } = message || {}
+
+  const isRoleAllowed: boolean = validateRoleOfRequestingUser(member?.roles?.cache, [UserRole.ADMIN, UserRole.MODERATORS, UserRole.SUPPORT])
+
+  if (!isRoleAllowed) {
+    return message.reply('Sorry, you are not allowed to use this command. Please ask a staff member for assistance adding links.')
+  }
 
   if (!content) {
     return message.reply('Sorry, I cannot understand that')
