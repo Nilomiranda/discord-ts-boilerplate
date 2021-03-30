@@ -4,6 +4,7 @@ export enum UserRole {
   ADMIN = 'Administrators',
   SUPPORT = 'Support',
   MODERATORS = 'Moderators',
+  DEVS = 'Devs',
 }
 
 export const validateRole = (roles: Discord.Collection<string, Discord.Role>, allowedRoles: UserRole | UserRole[]): boolean => {
@@ -23,8 +24,8 @@ const replyFunction = (message) => {
 export const guardedFunctionWrapper = <ArgType, ReturnType>(
   message: Message,
   allowedRoles: UserRole | UserRole[],
-  callback: (args?: ArgType) => ReturnType
-): ((args?: ArgType) => ReturnType) => {
+  callback: (...args: ArgType[]) => ReturnType
+): ((...args: ArgType[]) => ReturnType) => {
   if (validateRole(message?.member?.roles?.cache, allowedRoles)) {
     return callback
   }
