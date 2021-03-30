@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import { Client } from 'pg'
+import knex from 'knex'
 
 dotenv.config()
 
@@ -11,4 +11,7 @@ const config = {
   port: Number(process.env.DB_PORT),
 }
 
-export const client = new Client(config)
+export const client = knex({
+  client: 'postgres',
+  connection: config,
+})
