@@ -1,11 +1,14 @@
 import dotenv from 'dotenv'
+import { Client } from 'pg'
 
 dotenv.config()
 
-export default {
+const config = {
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_USER,
+  port: Number(process.env.DB_PORT),
 }
+
+export const client = new Client(config)
