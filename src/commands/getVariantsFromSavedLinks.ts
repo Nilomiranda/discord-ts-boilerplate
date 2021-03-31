@@ -162,8 +162,7 @@ export const getVariantsFromSavedLinks = async (message: Message, marketplace: M
 
   if (!links?.length) {
     message.reply('No product to show variants information. Your list of links is probably empty.')
-    message.reply(`Try inserting links with command \`${marketplace === MarketPlaces.SHOE_PALACE ? '!sp' : '!snk'} load\``)
-    return
+    return message.reply(`Try inserting links with command \`${marketplace === MarketPlaces.SHOE_PALACE ? '!sp' : '!snk'} load\``)
   }
 
   try {
@@ -188,7 +187,6 @@ export const getVariantsFromSavedLinks = async (message: Message, marketplace: M
     return message
   } catch (err) {
     message.reply(`Sorry, we couldn't process your link${links?.length && links?.length > 1 ? 's' : ''}`)
-    message.reply(err)
-    return
+    return message.reply(err)
   }
 }

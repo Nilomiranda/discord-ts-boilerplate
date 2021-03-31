@@ -10,7 +10,7 @@ const getLinks = (content: string): string[] => {
   return Array.from(new Set(extractUrls(content)))
 }
 
-const checkForInvalidLinks = (message: string, links: string[] = []): { invalidLinks: boolean; message?: string } => {
+export const checkForInvalidLinks = (message: string, links: string[] = []): { invalidLinks: boolean; message?: string } => {
   if (!links?.length) {
     return { invalidLinks: false }
   }
