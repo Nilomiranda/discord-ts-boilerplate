@@ -1,8 +1,8 @@
 import { MarketPlaces } from '../common/constants'
+import { BaseEntity } from './base'
 
-export interface Link {
+export interface LinkEntity extends BaseEntity {
   user_id: string
   link: string
-  created_date?: string
   store: MarketPlaces
 }
