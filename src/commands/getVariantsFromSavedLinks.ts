@@ -144,7 +144,7 @@ const createEmbedResponse = (mappedData: ProcessedLinksDataObject[], marketplace
       .setThumbnail(data?.thumbnail)
       .setColor(0x4a6fc3)
       .addField('Store', `\`\`\`${marketPlaceNames[marketplace]}\`\`\``)
-      .addField('Product LinkEntity', data?.link)
+      .addField('Product Link', data?.link)
       .addField('Price', `\`\`\`${new Intl.NumberFormat('en', { style: 'currency', currency: 'USD' }).format(data?.price / 100 || 0)}\`\`\``)
       .addField(
         'Size-Variant',
