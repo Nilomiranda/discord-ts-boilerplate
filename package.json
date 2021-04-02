@@ -8,8 +8,7 @@
     "lint": "yarn eslint . --ext .js,.jsx,.ts,.tsx",
     "dev": "node dist/index.js",
     "watch": "rm -rf dist && tsc-watch --onSuccess 'yarn dev'",
-    "start": "tsc --build && node dist/index.js",
-    "heroku-postbuild": "yarn start"
+    "start": "tsc --build && node dist/index.js"
   },
   "dependencies": {
     "ascii-table": "^0.0.9",
