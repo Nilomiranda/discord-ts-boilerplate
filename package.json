@@ -10,7 +10,7 @@
     "watch": "rm -rf dist && tsc-watch --onSuccess 'yarn dev'",
     "build": "tsc --build",
     "start": "node ./dist/index.js",
-    "heroku-postbuild": "build && start"
+    "heroku-postbuild": "start"
   },
   "dependencies": {
     "ascii-table": "^0.0.9",
