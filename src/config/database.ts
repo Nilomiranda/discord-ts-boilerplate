@@ -13,5 +13,5 @@ const config = {
 
 export const client = knex({
   client: 'postgres',
-  connection: config,
+  connection: process.env.NODE_ENV === 'development' ? config : process.env.DATABASE_URL,
 })
