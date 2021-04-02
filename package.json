@@ -9,7 +9,7 @@
     "dev": "node dist/index.js",
     "watch": "rm -rf dist && tsc-watch --onSuccess 'yarn dev'",
     "start": "node ./dist/index.js",
-    "heroku-postbuild": "start"
+    "heroku-postbuild": "yarn start"
   },
   "dependencies": {
     "ascii-table": "^0.0.9",
