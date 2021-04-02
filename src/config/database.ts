@@ -1,5 +1,8 @@
 import dotenv from 'dotenv'
 import knex from 'knex'
+import pg from 'pg'
+
+pg.defaults.ssl = true
 
 dotenv.config()
 
