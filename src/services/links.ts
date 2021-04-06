@@ -29,17 +29,8 @@ export const saveLinks = async (links: string[], message: Message): Promise<void
 }
 
 export const loadLinks = async (message: Message, marketplace: MarketPlaces): Promise<undefined | string[]> => {
-  const { user } = message?.member || { user: null }
-
-  if (!user) {
-    return
-  }
-
-  const { id } = user
-
   try {
     const res = await client<LinkEntity>('links').select('link').where({
-      user_id: id,
       store: marketplace,
     })
 
