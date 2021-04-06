@@ -3,7 +3,7 @@ import Discord, { Message } from 'discord.js'
 export enum UserRole {
   ADMIN = 'Administrators',
   SUPPORT = 'Support',
-  MODERATORS = 'Moderators',
+  MODERATOR = 'Moderator',
   DEVS = 'Devs',
 }
 

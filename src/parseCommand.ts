@@ -23,7 +23,7 @@ export const parseCommand = async (message: Message): Promise<Message> => {
   if (content?.startsWith('!snk load') || content?.startsWith('!sp load')) {
     const loadCommand = await guardedFunctionWrapper(
       message,
-      [UserRole.SUPPORT, UserRole.MODERATORS, UserRole.ADMIN, UserRole.DEVS],
+      [UserRole.SUPPORT, UserRole.MODERATOR, UserRole.ADMIN, UserRole.DEVS],
       handleLoadCommand
     )
     return loadCommand(message)
@@ -35,7 +35,7 @@ export const parseCommand = async (message: Message): Promise<Message> => {
   if (content?.startsWith('!snk variants')) {
     const getVariantsCommand = await guardedFunctionWrapper(
       message,
-      [UserRole.SUPPORT, UserRole.MODERATORS, UserRole.ADMIN, UserRole.DEVS],
+      [UserRole.SUPPORT, UserRole.MODERATOR, UserRole.ADMIN, UserRole.DEVS],
       getVariantsFromSavedLinks
     )
     return getVariantsCommand(message, MarketPlaces.SHOP_NICE_KICKS)
@@ -44,7 +44,7 @@ export const parseCommand = async (message: Message): Promise<Message> => {
   if (content?.startsWith('!sp variants')) {
     const getVariantsCommand = await guardedFunctionWrapper(
       message,
-      [UserRole.SUPPORT, UserRole.MODERATORS, UserRole.ADMIN, UserRole.DEVS],
+      [UserRole.SUPPORT, UserRole.MODERATOR, UserRole.ADMIN, UserRole.DEVS],
       getVariantsFromSavedLinks
     )
     return getVariantsCommand(message, MarketPlaces.SHOE_PALACE)
@@ -54,20 +54,12 @@ export const parseCommand = async (message: Message): Promise<Message> => {
    * DELETE LINK COMMAND
    */
   if (content?.startsWith('!snk delete')) {
-    const deleteLinkCommand = await guardedFunctionWrapper(
-      message,
-      [UserRole.SUPPORT, UserRole.MODERATORS, UserRole.ADMIN, UserRole.DEVS],
-      deleteLink
-    )
+    const deleteLinkCommand = await guardedFunctionWrapper(message, [UserRole.SUPPORT, UserRole.MODERATOR, UserRole.ADMIN, UserRole.DEVS], deleteLink)
     return deleteLinkCommand(message, MarketPlaces.SHOP_NICE_KICKS)
   }
 
   if (content?.startsWith('!sp delete')) {
-    const deleteLinkCommand = await guardedFunctionWrapper(
-      message,
-      [UserRole.SUPPORT, UserRole.MODERATORS, UserRole.ADMIN, UserRole.DEVS],
-      deleteLink
-    )
+    const deleteLinkCommand = await guardedFunctionWrapper(message, [UserRole.SUPPORT, UserRole.MODERATOR, UserRole.ADMIN, UserRole.DEVS], deleteLink)
     return deleteLinkCommand(message, MarketPlaces.SHOE_PALACE)
   }
 
@@ -75,12 +67,12 @@ export const parseCommand = async (message: Message): Promise<Message> => {
    * LIST LINKS COMMAND
    */
   if (content?.startsWith('!snk list')) {
-    const listLinksCommand = await guardedFunctionWrapper(message, [UserRole.SUPPORT, UserRole.MODERATORS, UserRole.ADMIN, UserRole.DEVS], listLinks)
+    const listLinksCommand = await guardedFunctionWrapper(message, [UserRole.SUPPORT, UserRole.MODERATOR, UserRole.ADMIN, UserRole.DEVS], listLinks)
     return listLinksCommand(message, MarketPlaces.SHOP_NICE_KICKS)
   }
 
   if (content?.startsWith('!sp list')) {
-    const listLinksCommand = await guardedFunctionWrapper(message, [UserRole.SUPPORT, UserRole.MODERATORS, UserRole.ADMIN, UserRole.DEVS], listLinks)
+    const listLinksCommand = await guardedFunctionWrapper(message, [UserRole.SUPPORT, UserRole.MODERATOR, UserRole.ADMIN, UserRole.DEVS], listLinks)
     return listLinksCommand(message, MarketPlaces.SHOE_PALACE)
   }
 }
