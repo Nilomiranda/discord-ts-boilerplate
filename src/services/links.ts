@@ -43,28 +43,18 @@ export const loadLinks = async (message: Message, marketplace: MarketPlaces): Pr
 }
 
 export const deleteLinks = async (message: Message, marketplace: MarketPlaces, links: string[] = []): Promise<boolean> => {
-  const { user } = message?.member || { user: null }
-
-  if (!user) {
-    return
-  }
-
-  const { id } = user
-
   if (!links?.length) {
     return false
   }
 
   try {
     const res = await client<LinkEntity>('links').select('link', 'id').whereIn('link', links).andWhere({
-      user_id: id,
       store: marketplace,
     })
 
     if (res) {
       const idsToDelete = res?.map((linkLoadResponse) => linkLoadResponse?.id) || []
 
-      // return res?.map((linkLoadResponse) => linkLoadResponse.link)
       if (idsToDelete?.length) {
         await client<LinkEntity>('links').whereIn('id', idsToDelete).del()
         return true
