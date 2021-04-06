@@ -1,19 +1,19 @@
-#Discord TS Boilerplate
+# Discord TS Boilerplate
 
 This a simple boilerplate to help you get started with discord bot development and typescript.
 
-##Batteries included
+## Batteries included
 
-###Main libs
+### Main libs
 - DiscordJS
 - Typescript
 
-###Code quality
+### Code quality
 - Prettier
 - Eslint
 - Lint staged
 
-###Database
+### Database
 - Knex Query builder
 - PostgreSQL driver
 
@@ -21,7 +21,7 @@ This a simple boilerplate to help you get started with discord bot development a
 > Edit that file if you need to enable and make sure to check `.env.example` for the necessary environment
 > variables
 
-##Overall structure
+## Overall structure
 
 `index.ts` is the entry point for the project.
 
