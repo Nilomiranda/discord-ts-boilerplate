@@ -38,3 +38,11 @@ only if the user role matches the allowed ones.
 `/common` stuff that will be used across the application but doesn't match any other category
 
 `/commands` put your commands here. You can separate by files or out everything in a single one. It's up to you.
+
+## Deployment on Heroku
+
+There's a procfile configure to help with Heroku hosting, to make the bot properly work.
+If you plan on using it, make sure the value associated to `service` matches your server start command
+or any other command you need in order to get everything running.
+
+If you plan on hosting somewhere else, just get rid of this file.
